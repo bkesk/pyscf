@@ -96,11 +96,11 @@ def ecpso_int(cell, kpts=None):
 
     kptij_lst = numpy.hstack((kpts_lst,kpts_lst)).reshape(-1,2,3)
     buf_all = incore.aux_e2(cell, ecpcell, 'ECPso', aosym='s2',
-                        kptij_lst=kptij_lst, shls_slice=shls_slice)
+                            kptij_lst=kptij_lst, shls_slice=shls_slice)
 
-    
+
     def unpack_sub(buf,kpts_lst,contr_coeff):
-        
+
         buf = buf.reshape(len(kpts_lst),-1)
         mat = []
         for k, kpt in enumerate(kpts_lst):
@@ -110,7 +110,7 @@ def ecpso_int(cell, kpts=None):
             mat.append(reduce(numpy.dot, (contr_coeff.T, v, contr_coeff)))
         if kpts is None or numpy.shape(kpts) == (3,):
             mat = mat[0]
-        
+
         return mat
 
     matx = unpack_sub(buf_all[0,:],kpts_lst,contr_coeff)
@@ -118,7 +118,7 @@ def ecpso_int(cell, kpts=None):
     matz = unpack_sub(buf_all[2,:],kpts_lst,contr_coeff)
 
     mat = numpy.array([matx,
-                    maty,
-                    matz])
+                       maty,
+                       matz])
 
     return mat
