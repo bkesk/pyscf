@@ -22,6 +22,7 @@ Generalized Hartree-Fock for periodic systems at a single k-point
 
 import numpy as np
 import scipy.linalg
+from pyscf import lib
 import pyscf.scf.ghf as mol_ghf
 from pyscf.pbc.scf import hf as pbchf
 from pyscf.pbc.scf import addons
@@ -73,7 +74,15 @@ class GHF(pbchf.SCF, mol_ghf.GHF):
 
     def get_hcore(self, cell=None, kpt=None):
         hcore = pbchf.SCF.get_hcore(self, cell, kpt)
-        return scipy.linalg.block_diag(hcore, hcore)
+        hcore =  scipy.linalg.block_diag(hcore, hcore)
+
+        if self.with_soc and cell.has_ecp_soc():
+            from pyscf.pbc.gto.ecp import ecpso_int
+            # The ECP SOC contribution = <|1j * s * U_SOC|>
+            s = .5 *lib.PauliMatrices
+            ecpso = np.einsum('sxy,spq->xpyq', -1j * s, ecpso_int(cell, kpt))
+            hcore = hcore + ecpso.reshape(hcore.shape)
+        return hcore
 
     def get_ovlp(self, cell=None, kpt=None):
         s = pbchf.SCF.get_ovlp(self, cell, kpt)
