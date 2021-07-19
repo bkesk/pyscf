@@ -72,6 +72,11 @@ class GHF(pbchf.SCF, mol_ghf.GHF):
     '''GHF class for PBCs.
     '''
 
+    def __init__(self, mol, *args, **kwargs):
+        pbchf.SCF.__init__(self, mol, *args, **kwargs)
+        self.with_soc = None
+        self._keys = self._keys.union(['with_soc'])
+
     def get_hcore(self, cell=None, kpt=None):
         hcore = pbchf.SCF.get_hcore(self, cell, kpt)
         hcore =  scipy.linalg.block_diag(hcore, hcore)
