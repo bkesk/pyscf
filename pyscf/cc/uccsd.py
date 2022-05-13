@@ -706,13 +706,13 @@ class UCCSD(ccsd.CCSD):
         from pyscf.cc import eom_uccsd
         return eom_uccsd.EOMEE(self).kernel(nroots, koopmans, guess, eris)
 
-    def eomee_ccsd(self, nroots=1, koopmans=False, guess=None, eris=None):
+    def eomee_ccsd(self, nroots=1, koopmans=False, guess=None, eris=None, left=False):
         from pyscf.cc import eom_uccsd
-        return eom_uccsd.EOMEESpinKeep(self).kernel(nroots, koopmans, guess, eris)
+        return eom_uccsd.EOMEESpinKeep(self).kernel(nroots, koopmans, guess, eris, left=left)
 
-    def eomsf_ccsd(self, nroots=1, koopmans=False, guess=None, eris=None):
+    def eomsf_ccsd(self, nroots=1, koopmans=False, guess=None, eris=None, left=False):
         from pyscf.cc import eom_uccsd
-        return eom_uccsd.EOMEESpinFlip(self).kernel(nroots, koopmans, guess, eris)
+        return eom_uccsd.EOMEESpinFlip(self).kernel(nroots, koopmans, guess, eris, left=left)
 
     def eomip_method(self):
         from pyscf.cc import eom_uccsd

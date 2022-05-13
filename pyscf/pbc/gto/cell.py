@@ -1688,6 +1688,11 @@ class Cell(mole.Mole):
         '''Whether pseudo potential is used in the system.'''
         return self.pseudo or self._pseudo or (len(self._ecpbas) > 0)
 
+    def has_ecp_soc(self):
+        '''Whether spin-orbit coupling is enabled in ECP.'''
+        return (len(self._ecpbas) > 0 and
+                np.any(self._ecpbas[:,4] == 1))
+
     def ao2mo(self, mo_coeffs, intor='int2e', erifile=None, dataname='eri_mo',
               **kwargs):
         raise NotImplementedError

@@ -66,3 +66,58 @@ def ecp_int(cell, kpts=None):
         mat = mat[0]
     return mat
 
+
+def ecpso_int(cell, kpts=None):
+    from pyscf.pbc.df import incore
+    if kpts is None:
+        kpts_lst = numpy.zeros((1,3))
+    else:
+        kpts_lst = numpy.reshape(kpts, (-1,3))
+
+    cell, contr_coeff = gto.cell._split_basis(cell)
+    lib.logger.debug1(cell, 'nao %d -> nao %d', *(contr_coeff.shape))
+
+    ecpcell = gto.Cell()
+    ecpcell._atm = cell._atm
+    # append a fictitious s function to mimic the auxiliary index in pbc.incore.
+    # ptr2last_env_idx to force PBCnr3c_fill_* function to copy the entire "env"
+    ptr2last_env_idx = len(cell._env) - 1
+    ecpbas = numpy.vstack([[0, 0, 1, 1, 0, ptr2last_env_idx, 0, 0],
+                           cell._ecpbas]).astype(numpy.int32)
+    ecpcell._bas = ecpbas
+    ecpcell._env = cell._env
+    # In pbc.incore _ecpbas is appended to two sets of cell._bas and the
+    # fictitious s function.
+    cell._env[AS_ECPBAS_OFFSET] = cell.nbas * 2 + 1
+    cell._env[AS_NECPBAS] = len(cell._ecpbas)
+    # shls_slice of auxiliary index (0,1) corresponds to the fictitious s function
+    shls_slice = (0, cell.nbas, 0, cell.nbas, 0, 1)
+
+    kptij_lst = numpy.hstack((kpts_lst,kpts_lst)).reshape(-1,2,3)
+    buf_all = incore.aux_e2(cell, ecpcell, 'ECPso', aosym='s2',
+                            kptij_lst=kptij_lst, shls_slice=shls_slice)
+
+
+    def unpack_sub(buf,kpts_lst,contr_coeff):
+
+        buf = buf.reshape(len(kpts_lst),-1)
+        mat = []
+        for k, kpt in enumerate(kpts_lst):
+            v = lib.unpack_tril(buf[k], lib.ANTIHERMI)
+            if abs(kpt).sum() < 1e-9:  # gamma_point:
+                v = v.real
+            mat.append(reduce(numpy.dot, (contr_coeff.T, v, contr_coeff)))
+        if kpts is None or numpy.shape(kpts) == (3,):
+            mat = mat[0]
+
+        return mat
+
+    matx = unpack_sub(buf_all[0,:],kpts_lst,contr_coeff)
+    maty = unpack_sub(buf_all[1,:],kpts_lst,contr_coeff)
+    matz = unpack_sub(buf_all[2,:],kpts_lst,contr_coeff)
+
+    mat = numpy.array([matx,
+                       maty,
+                       matz])
+
+    return mat

@@ -969,18 +969,18 @@ def eeccsd(eom, nroots=1, koopmans=False, guess=None, eris=None, imds=None):
     return eom.e, eom.v
 
 def eomee_ccsd(eom, nroots=1, koopmans=False, guess=None,
-               eris=None, imds=None, diag=None):
+               eris=None, imds=None, diag=None, left=False):
     if eris is None: eris = eom._cc.ao2mo()
     if imds is None: imds = eom.make_imds(eris)
     eom.converged, eom.e, eom.v \
-            = eom_rccsd.kernel(eom, nroots, koopmans, guess, imds=imds, diag=diag)
+            = eom_rccsd.kernel(eom, nroots, koopmans, guess, left=left, imds=imds, diag=diag)
     return eom.e, eom.v
 
 def eomsf_ccsd(eom, nroots=1, koopmans=False, guess=None,
-               eris=None, imds=None, diag=None):
+               eris=None, imds=None, diag=None, left=False):
     '''Spin flip EOM-EE-CCSD
     '''
-    return eomee_ccsd(eom, nroots, koopmans, guess, eris, imds, diag)
+    return eomee_ccsd(eom, nroots, koopmans, guess, eris, imds, diag, left=left)
 
 amplitudes_to_vector_ee = uccsd.amplitudes_to_vector
 vector_to_amplitudes_ee = uccsd.vector_to_amplitudes
